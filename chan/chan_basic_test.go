@@ -14,6 +14,9 @@ func Test_Send_Recv(t *testing.T) {
 	close(ch)
 }
 
+/**
+ * bingo: we can use select+default to implement non-blocking send/recv
+ */
 func Test_NonBlock(t *testing.T) {
 	messages := make(chan string)
 	signals := make(chan bool)
