@@ -14,12 +14,6 @@ func Test_Send_Recv(t *testing.T) {
 	close(ch)
 }
 
-func Test_Send_Recv_To_Uninitialized_Chan(t *testing.T) {
-	var ch chan int
-	ch <- 1
-	fmt.Println(<-ch)
-}
-
 func Test_NonBlock(t *testing.T) {
 	messages := make(chan string)
 	signals := make(chan bool)
@@ -33,7 +27,7 @@ func Test_NonBlock(t *testing.T) {
 
 	msg := "hi"
 	select {
-	// mark: send & recv can be used in one select
+	// note: send & recv can be used in one select
 	case msg := <-messages:
 		fmt.Println("received message", msg)
 	case messages <- msg:
