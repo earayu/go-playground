@@ -15,7 +15,7 @@ func Test_Send_Recv(t *testing.T) {
 }
 
 /**
- * bingo: we can use select+default to implement non-blocking send/recv
+ * note: we can use select+default to implement non-blocking send/recv
  */
 func Test_NonBlock(t *testing.T) {
 	messages := make(chan string)
@@ -28,17 +28,6 @@ func Test_NonBlock(t *testing.T) {
 		fmt.Println("no message received")
 	}
 
-	msg := "hi"
-	select {
-	// note: send & recv can be used in one select
-	case msg := <-messages:
-		fmt.Println("received message", msg)
-	case messages <- msg:
-		fmt.Println("sent message", msg)
-	default:
-		fmt.Println("no message sent")
-	}
-
 	select {
 	case msg := <-messages:
 		fmt.Println("received message", msg)
@@ -46,5 +35,25 @@ func Test_NonBlock(t *testing.T) {
 		fmt.Println("received signal", sig)
 	default:
 		fmt.Println("no activity")
+	}
+}
+
+/**
+ * note: send & recv can be used in one select
+ */
+func Test_Send_Recv_At_The_Same_Time(t *testing.T) {
+	messages := make(chan string)
+	msg := "hi"
+	select {
+	case rmsg := <-messages:
+		// 'messages' channel has no value, so this case will be blocked
+		fmt.Println("received message", rmsg)
+		t.Fail()
+	case messages <- msg:
+		// 'messages' channel has no buffer, so this case will be blocked
+		fmt.Println("sent message", msg)
+		t.Fail()
+	default:
+		fmt.Println("no message sent")
 	}
 }

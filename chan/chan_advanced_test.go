@@ -3,8 +3,38 @@ package _chan
 import (
 	"fmt"
 	"github.com/earayu/go-playground/global"
+	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
+
+func Test_Two_Select_Stmts_Wait_For_One_Channel(t *testing.T) {
+	doneC := make(chan struct{})
+	c1 := make(chan int)
+	c2 := make(chan int)
+
+	doneChannelCount := 0
+
+	waitGoRoutine := func() {
+		for {
+			select {
+			case <-doneC:
+				fmt.Println("recv doneC")
+				doneChannelCount++
+				return
+			case <-c1:
+			case <-c2:
+			}
+		}
+	}
+	go waitGoRoutine()
+	go waitGoRoutine()
+
+	close(doneC)
+	time.Sleep(10 * time.Millisecond)
+
+	assert.Equal(t, doneChannelCount, 2)
+}
 
 func Test_Recv_From_A_Closed_Chan(t *testing.T) {
 	ch := make(chan int, 100)

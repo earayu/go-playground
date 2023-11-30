@@ -1,0 +1,67 @@
+syntax = "proto3";
+option go_package = "github.com/earayu/go-playground/grpc_server";
+
+package tabletmanagerservice;
+
+// TabletType represents the type of a given tablet.
+enum TabletType {
+  option allow_alias = true; // so we can have RDONLY and BATCH co-exist
+
+  // UNKNOWN is not a valid value.
+  UNKNOWN = 0;
+
+  // PRIMARY is the primary server for the shard. Only PRIMARY allows DMLs.
+  PRIMARY = 1;
+
+  // DEPRECATED
+  MASTER = 1;
+
+  // REPLICA replicates from primary. It is used to serve live traffic.
+  // A REPLICA can be promoted to PRIMARY. A demoted PRIMARY will go to REPLICA.
+  REPLICA = 2;
+
+  // RDONLY (old name) / BATCH (new name) is used to serve traffic for
+  // long-running jobs. It is a separate type from REPLICA so
+  // long-running queries don't affect web-like traffic.
+  RDONLY = 3;
+  BATCH = 3;
+
+  // SPARE is a type of servers that cannot serve queries, but is available
+  // in case an extra server is needed.
+  SPARE = 4;
+
+  // EXPERIMENTAL is like SPARE, except it can serve queries. This
+  // type can be used for usages not planned by Vitess, like online
+  // export to another storage engine.
+  EXPERIMENTAL = 5;
+
+  // BACKUP is the type a server goes to when taking a backup. No queries
+  // can be served in BACKUP mode.
+  BACKUP = 6;
+
+  // RESTORE is the type a server uses when restoring a backup, at
+  // startup time.  No queries can be served in RESTORE mode.
+  RESTORE = 7;
+
+  // DRAINED is the type a server goes into when used by Vitess tools
+  // to perform an offline action. It is a serving type (as
+  // the tools processes may need to run queries), but it's not used
+  // to route queries from Vitess users. In this state,
+  // this tablet is dedicated to the process that uses it.
+  DRAINED = 8;
+}
+
+message ChangeTypeRequest {
+  TabletType tablet_type = 1;
+  bool semiSync = 2;
+}
+
+message ChangeTypeResponse {
+}
+
+// TabletManager is a service definition for tabletmanagerdata.TabletManager.
+service TabletManager {
+  // ChangeType asks the remote tablet to change its type
+  rpc ChangeType(ChangeTypeRequest) returns (ChangeTypeResponse) {};
+
+}
