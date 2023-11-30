@@ -2,24 +2,20 @@ package ctx
 
 import (
 	"context"
-	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
-	"time"
 )
-
-func waitAndExec(d time.Duration, f func()) {
-	time.Sleep(d)
-	f()
-}
 
 func TestCancelCtx(t *testing.T) {
 	baseCtx := context.Background()
-	cancelCtx, _ := context.WithCancel(baseCtx)
-	//d := cancelCtx.Done()
-	//fmt.Println(<-d)
-	//waitAndExec(1*time.Second, func() {
-	//	cancel()
-	//})
-	d := cancelCtx.Done()
-	fmt.Println(<-d)
+	doneC, cancelFunc := context.WithCancel(baseCtx)
+
+	cancelFunc()
+
+	v, ok := <-doneC.Done()
+	// note:
+	// since we call cancelFunc, the doneC.Done() chan will be closed, so we recv Zero Value from a closed chan
+	assert.Equal(t, struct{}{}, v)
+	// At the same time, the second return value is false, which means the chan is closed
+	assert.Equal(t, false, ok)
 }
